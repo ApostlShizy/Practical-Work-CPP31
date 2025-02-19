@@ -1,90 +1,88 @@
-#include <iostream>
-#include <vector>
+#include<iostream>
 
 class Toy {
     std::string toyName;
 public:
-    Toy() : toyName("some toy") {}
     Toy(std::string inToyName) : toyName(inToyName) {}
-    std::string getToyName() {
+    Toy() : toyName("some toy") {}
+    auto getToyName() {
         return toyName;
     }
     ~Toy() {
-        std::cout << "\nToy " << toyName << " was dropped" << std::endl;
+        std::cout << "\nToy " << toyName << " was droped" << std::endl;
     }
 };
 
 class Dog {
-    std::string name;
-    std::shared_ptr<Toy> takenToy;
+private:
+    std::shared_ptr<Toy> hisToy = nullptr;
+    std::string dogName;
 public:
-    Dog(std::string inName) : name(inName) {}
-    Dog() : Dog("Bobik") {}
-
-    std::string getName() {
-        return name;
-    }
-
-    void takeToy(std::shared_ptr<Toy> someToy) {
-        if (takenToy == someToy) {
-            std::cout << "\nI already have this toy " << std::endl;
+    Dog(std::string inDogName, std::shared_ptr<Toy> inToyName) : dogName(inDogName), hisToy(inToyName) {}
+    Dog() : dogName("some name"), hisToy(std::make_shared<Toy>()) {}
+    Dog(std::string inDogName) : dogName(inDogName), hisToy(nullptr) {}
+    void getToy(std::shared_ptr<Toy> otherToy) {
+        if (otherToy == hisToy) {
+            std::cout << "\nI alredy have this toy" << std::endl;
             return;
         }
-        if (someToy.use_count() > 2) {
-            std::cout << "\nAnother dog is playing with this toy." << std::endl;
+        if (otherToy.use_count() > 2) {
+            std::cout << "\nSome one alrydy play with this toy" << std::endl;
             return;
         }
-        takenToy = someToy;
-        std::cout << name << " dog take " << someToy->getToyName() << std::endl;
+        std::cout << "\nDog " << dogName << " take the toy" << std::endl;
+        hisToy = otherToy;
     }
     void dropToy() {
-        if (takenToy == nullptr) {
+        if (hisToy == nullptr) {
             std::cout << "\nNothing to drop" << std::endl;
             return;
         }
-        std::cout << "\nDog " << name << " live " << takenToy->getToyName() << " on floor" << std::endl;
-        takenToy.reset();
+        std::cout << "\nDog " << dogName << " drop toy " << std::endl;
+        hisToy.reset();
+    }
+    auto getDogName() {
+        return dogName;
+    }
+    auto getDogToy() {
+        return hisToy;
     }
 };
 
-std::vector<Dog>::iterator findDog(std::vector<Dog>& dogs, std::string dogName) {
-    for (auto iter = dogs.begin(); iter != dogs.end(); ++iter) {
-        if (iter->getName() == dogName) {
-            return iter;
-        }
-    }
-    std::cout << "\nWrong dog name " << std::endl;
-    return dogs.end();
-}
-
-
 int main() {
-    std::vector<Dog> dogs;
-    dogs.emplace_back("sharick");
-    dogs.emplace_back("bobik");
-    dogs.emplace_back("barbos");
-    std::shared_ptr<Toy> boll = std::make_shared<Toy>("boll");
+    Dog* dogs[3];
+    std::shared_ptr<Toy> Ball = std::make_shared<Toy>("Ball");
+    dogs[0] = new Dog("Sharik");
+    dogs[1] = new Dog("Boboik");
+    dogs[2] = new Dog("Simon");
     std::string choice;
     while (choice != "exit") {
-        std::cout << "\nDogs name : ";
-        for (int i = 0; i < dogs.size(); ++i) {
-            std::cout << dogs[i].getName() << "   ";
+        std::cout << "\nDogs names : " << std::endl;
+        for (auto& current : dogs) {
+            std::cout << current->getDogName();
+            if (current->getDogToy() != nullptr) {
+                std::cout <<" hold toy : " << current->getDogToy()->getToyName();
+            }
+            std::cout << std::endl;
         }
-        std::cout << "\nEnter dog name or \"exit\"  : ";
+        std::cout << "\nEnter dog name : ";
         std::cin >> choice;
         if (choice != "exit") {
-            auto iter = findDog(dogs, choice);
-            if (iter != dogs.end()) {
-                std::cout << "\nWhat dog do \"drop\" \"take\" : ";
+            Dog* chosenDog = nullptr;
+            for (int i = 0; i < 3; ++i) {
+                if (choice == dogs[i]->getDogName()) {
+                    chosenDog = dogs[i];
+                    break;
+                }
+            }
+            if (chosenDog != nullptr) {
+                std::cout << "\nWhat dog need to do (get/drop) : ";
                 std::cin >> choice;
-                if (choice == "take") {
-                    iter->takeToy(boll);
+                if (choice == "get") {
+                    chosenDog->getToy(Ball);
                 }
                 else if (choice == "drop") {
-                    iter->dropToy();
-                }
-                else {
-                    std::cout << "\nInvalid option" << std::endl;
+                    chosenDog->dropToy();
                 }
             }
         }
